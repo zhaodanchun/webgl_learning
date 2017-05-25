@@ -1,10 +1,149 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title></title>
+    <title>chapter6-1 材质贴图</title>
+    <style type="text/css">
+        div#canvas-frame {
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            height: 600px;
+            background-color: #EEEEEE;
+        }
+
+    </style>
+
+    <script src="js/threejs73.js"></script>
+    <script src="js/Stats.js"></script>
+    <script>
+        var renderer;
+        var stats;
+
+        function initThree(){
+            width = document.getElementById("canvas-frame").clientWidth;
+            height = document.getElementById("canvas-frame").clientHeight;
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(width, height);
+            document.getElementById("canvas-frame").appendChild(renderer.domElement);
+            renderer.setClearColor(0xffffff, 1.0);
+
+
+
+        }
+        var camera;
+        function initCamera(){
+//            camera = new THREE.OrthographicCamera(window.innerWidth/-2, window.innerWidth/2, window.innerHeight/2, window.innerHeight/-2, 10, 1000);
+            camera = new THREE.PerspectiveCamera(45, width/height, 1, 10000);
+            camera.position.x = 600;
+            camera.position.y = 0;
+            camera.position.z = 600;
+            camera.up.x = 0;
+            camera.up.y = 1;
+            camera.up.z = 0;
+            camera.lookAt({
+                x:0,
+                y:0,
+                z:0
+            });
+        }
+
+        var scene;
+        function initScene(){
+            scene = new THREE.Scene();
+
+        }
+        var light;
+        function initLight(){
+
+            //1、环境光
+            light = new THREE.AmbientLight(0x00ff00);
+            light.position.set(100, 100, 200);
+            scene.add(light);
+
+            //2、点光源，蜡烛光一样
+            /* light = new THREE.PointLight(0x00ff00);
+             light.position.set(0, 0, 300);
+             scene.add(light);*/
+
+
+            //3.方向光  第二个参数是光源强度，你可以改变它试一下
+            //light = new THREE.DirectionalLight(0xFF0000, 1);
+            // 位置不同，方向光作用于物体的面也不同，看到的物体各个面的颜色也不一样
+
+            //从屏幕正方照射
+            //light.position.set(0,0,100); //只与方向有关，与距离无关，所以位置设为(0,0,100)和(0,0,1)效果是一样的
+            //light.position.set(0,0,1);
+
+            //从x轴正方形照射
+//            light.position.set(1,0,0);
+
+            //从y轴正方向照射
+//            light.position.set(0,1,0);
+
+            //scene.add(light);
+        }
+
+        var cube;
+        function initObject(){
+//            var geometry = new THREE.CylinderGeometry(70, 100, 200);
+             var geometry = new THREE.CubeGeometry( 200, 200, 200, 4, 4, 4);
+
+             var material = new THREE.MeshLambertMaterial({color:0xffffff});
+
+//            var texture = THREE.ImageUtils.loadTexture("texture/a.jpg", null, function(){});
+//            var material = new THREE.MeshBasicMaterial({map:texture}); //贴图材质
+             var mesh = new THREE.Mesh(geometry, material);
+             mesh.position.set(0, 0, 0);
+             scene.add(mesh);
+
+
+
+
+        }
+
+
+        function render(){
+            renderer.clear();
+            renderer.render(scene, camera);
+            //requestAnimationFrame(render);
+        }
+
+        function threeStart(){
+            initThree();
+            initCamera();
+            initScene();
+            initLight();
+            initObject();
+            render();
+//            animation();
+        }
+
+        function animation(){
+            changeFov();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animation);
+
+        }
+
+        function setCameraFov(fov){
+            camera.fov = fov;
+            camera.updateProjectionMatrix();
+        }
+
+        function changeFov(){
+            var txtFov = document.getElementById("txtFov").value;
+            var val = parseFloat(txtFov);
+            setCameraFov(val);
+        }
+
+
+
+    </script>
 </head>
-<body>
+<body onload="threeStart();">
+<div id="canvas-frame"></div>
 
 </body>
 </html>
