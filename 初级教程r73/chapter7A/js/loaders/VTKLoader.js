@@ -90,6 +90,8 @@ THREE.VTKLoader.prototype = {
 
 			face3( parseInt( result[ 1 ] ), parseInt( result[ 2 ] ), parseInt( result[ 3 ] ) );
 
+
+
 		}
 
 		// 4 int int int int
