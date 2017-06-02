@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js shader教程-demo1</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #ffffff;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+
+				color: #ffffff;
+			}
+
+			#oldie a { color:#da0 }
+		</style>
+		<style>
+			html, body {
+				height: 100%;
+			}
+
+			body {
+				background-color: #000000;
+				margin: 0;
+				font-family: Arial;
+				overflow: hidden;
+			}
+
+			a {
+				color: #ffffff;
+			}
+
+			#info {
+				position: absolute;
+				width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family: Monospace;
+				font-size: 13px;
+				font-weight: bold;
+				text-align: center;
+				z-index: 1;
+			}
+
+			#menu {
+				position: absolute;
+				bottom: 20px;
+				width: 100%;
+				text-align: center;
+			}
+
+			.element {
+				width: 140px;
+				height: 180px;
+				box-shadow: 0px 0px 20px rgba(0,255,255,0.5);
+				border: 1px solid rgba(127,255,255,0.25);
+				cursor: default;
+			}
+
+			.element:hover {
+				box-shadow: 0px 0px 20px rgba(0,255,255,0.75);
+				border: 1px solid rgba(127,255,255,0.75);
+			}
+
+				.element .number {
+					position: absolute;
+					top: 20px;
+					right: 20px;
+					font-size: 20px;
+					color: rgba(127,255,255,0.75);
+				}
+
+				.element .symbol {
+					position: absolute;
+					top: 40px;
+					width: 100%;
+					font-size: 70px;
+					text-align: center;
+					color: rgba(255,255,255,0.75);
+					font-weight: bold;
+
+					-webkit-filter: drop-shadow(0px 0px 20px rgba(0,255,255,0.95));
+					-moz-filter: drop-shadow(0px 0px 20px rgba(0,255,255,0.95));
+					-o-filter: drop-shadow(0px 0px 20px rgba(0,255,255,0.95));
+					-ms-filter: drop-shadow(0px 0px 20px rgba(0,255,255,0.95));
+					filter: drop-shadow(0px 0px 20px rgba(0,255,255,0.95));
+				}
+
+				.element .details {
+					position: absolute;
+					top: 125px;
+					width: 100%;
+					font-size: 18px;
+					text-align: center;
+					color: rgba(127,255,255,0.75);
+				}
+
+			button {
+				color: rgba(0,0,0,0.75);
+				background: transparent;
+				outline: 1px solid rgba(127,255,255,0.75);
+				border: 0px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+			button:hover {
+				background-color: rgba(0,0,255,0.5);
+			}
+			button:active {
+				color: #000000;
+				background-color: rgba(0,255,255,0.75);
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+		<div id="info"><a target="_blank">shader教程：更多免费教程hewebgl.com网，学习群：331962041</a></div>
+		<div id="menu">
+			<button id="table" onclick="click1(1700);">1700</button>
+			<button id="table" onclick="click1(700);">700</button>
+			<button id="table" onclick="click1(500);">500</button>
+			<button id="sphere" onclick="click1(400);">400</button>
+			<button id="helix" onclick="click1(300);">300</button>
+			<button id="grid" onclick="click1(200);">200</button>
+			<button id="grid" onclick="click1(20);">20</button
+		</div>
+
+		<script src="js/three.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script>
+			function click1(v)
+			{
+				uniforms.scale.value = v;
+			}
+		</script>
+		<script id="vertexShader" type="x-shader1/x-vertex1">			
+			void main()	{
+				gl_Position = vec4( position, 1.0 );
+			}
+
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			#ifdef GL_ES
+			precision highp float;
+			#endif
+			uniform float scale;
+			void main(void) {
+			   float Cr = (gl_FragCoord.x - 1000.) / scale + .407476;
+			   float Ci = (gl_FragCoord.y - 500.) / scale + .234204;
+			   float R = .06, I = .13,  R2 = R*R, I2 = I*I;
+			   int mm;
+			   for(int m = 0; m < 255; m++){
+				 I=(R+R)*I+Ci;  R=R2-I2+Cr;  R2=R*R;  I2=I*I;    mm = m;
+				 if( R2 + I2 > 4. ) break;
+			   }
+			   if (mm == 254) gl_FragColor = vec4(0., 0., 0., 1.);
+			   else{
+				float a = mod(float(mm), 60.) / 20.;
+				gl_FragColor = vec4( max(0., abs(a - 1.5) - .5),
+				  max(0., 1. - abs(a - 1.)), max(0., 1. - abs(a - 2.)), 1.);
+			   }
+			}
+
+		</script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats;
+
+			var camera, scene, renderer;
+
+			var uniforms, material, mesh;
+
+			var mouseX = 0, mouseY = 0,
+			lat = 0, lon = 0, phy = 0, theta = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+			
+			var orb = [
+			[.248, 0, .15],
+			[.27, 0, .2],
+			[.33, .033, .1],
+			[.42, .228, .1],
+			[.27, .564, .1],
+			[-.162, .78, .1],
+			[-.534, .612, .1],
+			[-.726, .3, .1],
+			[-.75, .0, .05],
+			[.248, 0, .15]];
+			var To = 30;
+			var n = 8;
+			
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.Camera();
+				camera.position.z = 0.3;
+
+				scene = new THREE.Scene();
+				
+				uniforms = {
+					scale: { type: "f", value: 500.0 },
+					c: { type: "v2", value: new THREE.Vector2() }
+				};
+
+
+				material = new THREE.ShaderMaterial( {
+					uniforms: uniforms,
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+
+				} );
+
+				mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2.0, 2.0 ), material );
+				scene.add( mesh );
+
+				renderer = new THREE.WebGLRenderer();
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				onWindowResize();
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+				time = new Date().getTime();
+				k = 0;  Tp = -1;
+				T = time/1000 + orb[k][2]*To;
+
+			}
+
+			function onWindowResize( event ) {
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				//uniforms.scale.value.x = window.innerWidth/2;
+				//uniforms.scale.value.y = window.innerHeight;
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+				var tim = new Date().getTime();
+				//uniforms.scale.value = 500*Math.sin(tim);
+				
+				renderer.render( scene, camera );
+			}
+
+		</script>
+		
+	</body>
+</html>
