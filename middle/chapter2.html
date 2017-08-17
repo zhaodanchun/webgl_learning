@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>chapter2-1 性能优化</title>
+    <style type="text/css">
+        div#canvas-frame {
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            height: 600px;
+            background-color: #EEEEEE;
+        }
+
+    </style>
+
+    <script src="../primary/js/threejs73.js"></script>
+    <script src="../primary/js/Stats.js"></script>
+    <script>
+        var renderer;
+        var stats;
+
+        function initThree(){
+            width = document.getElementById("canvas-frame").clientWidth;
+            height = document.getElementById("canvas-frame").clientHeight;
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(width, height);
+            document.getElementById("canvas-frame").appendChild(renderer.domElement);
+            renderer.setClearColor(0xffffff, 1.0);
+
+            stats = new Stats();
+            stats.domElement.style.position = "absolute";
+            stats.domElement.style.left = "0px";
+            stats.domElement.style.top = "0px";
+            document.getElementById("canvas-frame").append(stats.domElement);
+
+        }
+        var camera;
+        function initCamera(){
+            camera = new THREE.PerspectiveCamera(45, width/height, 1, 10000);
+            camera.position.x = 0;
+            camera.position.y = 1000;
+            camera.position.z = 0;
+            camera.up.x = 0;
+            camera.up.y = 0;
+            camera.up.z = 1;
+            camera.lookAt({
+                x:0,
+                y:0,
+                z:0
+            });
+        }
+
+        var scene;
+        function initScene(){
+            scene = new THREE.Scene();
+
+        }
+        var light;
+        function initLight(){
+            light = new THREE.AmbientLight(0xffffff);
+            light.position.set(100, 100, 200);
+            scene.add(light);
+            light = new THREE.PointLight(0x00ff00);
+            light.position.set(0, 0, 300);
+            scene.add(light);
+        }
+
+        var cube;
+        function initObject(){
+//            var geometry = new THREE.CylinderGeometry(100, 150, 400);
+            var geometry = new THREE.Geometry();
+
+            /**
+             * 下面的每个循环使用了3个new操作，每个new都代表开辟新的内存空间，因为操作系统内存管理的缘故，这些内存空间基本上不能是连续的，所以读取的时候，内存管理器需要不断的重新寻址。
+             */
+            for(var i=0; i< 300000; i++){
+                geometry.vertices.push(new THREE.Vector3(-10*Math.random() + 10, -20*Math.random() + 10, -20*Math.random() +10));
+                geometry.vertices.push(new THREE.Vector3(-10*Math.random() + 10, -20*Math.random() + 10, -20*Math.random() +10));
+                geometry.vertices.push(new THREE.Vector3(-10*Math.random() + 10, -20*Math.random() + 10, -20*Math.random() +10));
+
+            }
+            //BufferGeometry的设置例子 集合中4中属性内容：索引index，位置position， 法线normal，颜色color
+            var triangles = 16000;
+            //todo并不完整
+            geometry.attributes = {
+                index: {
+                    itemSize: 1,
+                    array: new Unit16Array(triangles * 3),
+                    numItems: triangles*3
+                },
+                position:{
+                    itemSize:3,
+                    array: new Float32Array(triangles * 3*3),
+                    numItems:triangles *3 *3
+                },
+                normal:{
+                    itemSize:3,
+                    array:new Float32Array(triangles *3 *3),
+                    numItems: triangles * 3*3
+                },
+                color:{
+                    itemSize:3, //color中的一个项目由几个字节组成
+                    array: new Float32Array(triangles * 3*3),//表示项目所占的内存数组
+                    numItems: triangles * 3*3 //有多少个项目
+                }
+
+            };
+
+            var material = new THREE.MeshLambertMaterial({color:0xFFFF00});
+            var mesh = new THREE.Mesh(geometry, material);
+            mesh.position = new THREE.Vector3(0,0, 0);
+            scene.add(mesh);
+
+
+
+
+        }
+
+
+
+
+        function render(){
+            renderer.clear();
+            renderer.render(scene, camera);
+            //requestAnimationFrame(render);
+        }
+
+        function threeStart(){
+            initThree();
+            initCamera();
+            initScene();
+            initLight();
+            initObject();
+            render();
+//            animation();
+        }
+
+        function animation(){
+            //相机移动，物体从左往右移动.... todo 物体不应该向左移动吗
+            camera.position.x = camera.position.x + 1;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animation);
+            stats.update();
+        }
+
+
+
+    </script>
+</head>
+
+<body onload="threeStart();">
+<div id="canvas-frame"></div>
+</body>
+</html>
